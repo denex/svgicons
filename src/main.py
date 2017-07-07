@@ -95,7 +95,7 @@ def render_templates(png_filename):
     render_file('grid.template', {'icon': icon}, grid_filename)
     if not os.path.exists(svg_filename):
         render_file('svg.template', {'icon': icon}, svg_filename)
-    args = ['open'] if sys.platform == 'darwin' else []
+    args = ['open'] if sys.platform == 'darwin' else ['cmd.exe', '/c', 'start']
     args.append(svg_filename)
     subprocess.call(args)
     render_file('html.template', {'icon': icon,
@@ -145,7 +145,9 @@ def main(origin_png_filename):
 
     # Start WebSocket server
     WS_SERVER = WebsocketServer(**WS_SERVER_CONFIG)
-    subprocess.check_call(['open', HTML_URL])
+    args = ['open'] if sys.platform == 'darwin' else ['cmd.exe', '/c', 'start']
+    args.append(HTML_URL)
+    subprocess.check_call(args)
     WS_SERVER.run_forever()
     #
     observer.stop()
