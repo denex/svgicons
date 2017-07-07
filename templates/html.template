@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ paths.svg_filename }}</title>
+    <style type="text/css">
+        body {
+            background-color: black;
+        }
+        .floatTL_1_1{
+            position:absolute;
+            top:0px;
+            left:0px;
+        }
+        .floatTL_1_2{
+            position:absolute;
+            top:0px;
+            left:{{ icon.width + 1 }}px;
+        }
+        .float_1_3{
+            position:absolute;
+            top:0px;
+            left:{{ 2 * icon.width + 2 }}px;
+        }
+        .float_2_1{
+            position:absolute;
+            top:{{ icon.height + 1 }}px;
+            left:0px;
+        }
+        .floatTL_2_2{
+            position:absolute;
+            top:{{ icon.height + 1 }}px;
+            left:{{ icon.width + 1 }}px;
+        }
+        .floatTL_2_3{
+            position:absolute;
+            top:{{ icon.height + 1 }}px;
+            left:{{ 2 * icon.width + 2 }}px;
+        }
+        img {
+            width:{{ icon.width }}px;
+            height:{{ icon.height }}px;
+        }
+    </style>
+</head>
+<script type="text/javascript">
+    function init() {
+        console.info("init");
+        var onMessage = function(evt) {
+            if (evt.data === "Refresh") {
+                ws.close();
+                // Reload page
+                location.reload();
+            } else {
+                console.debug("Unknown message:", evt);
+            }
+        }
+        var ws = new WebSocket("ws://{{ server.host}}:{{ server.port }}/");
+        ws.onmessage = function(evt) { onMessage(evt) };
+        ws.onopen = function(evt) { console.info("onopen", evt) };
+        ws.onclose = function(evt) { console.info("onclose", evt) };
+        ws.onerror = function(evt) { console.error("onerror", evt) };
+    }
+    window.addEventListener("load", init, false);
+</script>
+<body>
+    <div class="floatTL_1_1">
+        <img src="{{ paths.svg_filename }}" />
+    </div>
+    <div class="floatTL_1_2">
+        <img src="{{ paths.generated_filename }}" />
+    </div>
+    <div class="float_1_3">
+        <img src="{{ paths.diff_filename }}" />
+    </div>
+    <div class="float_2_1">
+        <img src="{{ paths.png_filename }}">
+    </div>
+
+    <!-- Grid -->
+    <!-- <div class="floatTL_1_1">
+        <img src="{{ paths.grid_filename }}" />
+    </div>
+    <div class="floatTL_1_2">
+        <img src="{{ paths.grid_filename }}" />
+    </div>
+    <div class="float_1_3">
+        <img src="{{ paths.grid_filename }}" />
+    </div>
+    <div class="float_2_1">
+        <img src="{{ paths.grid_filename }}" />
+    </div>
+    <div class="floatTL_2_2">
+        <img src="{{ paths.grid_filename }}" />
+    </div>
+    <div class="floatTL_2_3">
+        <img src="{{ paths.grid_filename }}" />
+    </div> -->
+
+</body>
+</html>
