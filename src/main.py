@@ -95,7 +95,9 @@ def render_templates(png_filename):
     render_file('grid.template', {'icon': icon}, grid_filename)
     if not os.path.exists(svg_filename):
         render_file('svg.template', {'icon': icon}, svg_filename)
-    subprocess.call(['open', svg_filename])
+    args = ['open'] if sys.platform == 'darwin' else []
+    args.append(svg_filename)
+    subprocess.call(args)
     render_file('html.template', {'icon': icon,
                                   'server': WS_SERVER_CONFIG,
                                   'paths': paths},
