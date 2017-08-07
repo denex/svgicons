@@ -1,0 +1,48 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Server",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": false,
+            "pythonPath": "${config:python.pythonPath}",
+            "program": "${workspaceRoot}/src/main.py",
+            "args": [
+                "${workspaceRoot}/test/test_image.png"
+            ],
+            "cwd": "${workspaceRoot}/src/",
+            "debugOptions": [
+                "WaitOnAbnormalExit",
+                "WaitOnNormalExit",
+                "RedirectOutput"
+            ]
+        },
+        {
+            "type": "firefox",
+            "request": "launch",
+            "reAttach": true,
+            "name": "Firefox index.html",
+            "file": "${workspaceRoot}/www/index.html"
+        },
+        {
+            "type": "firefox",
+            "request": "attach",
+            "name": "Attach to Firefox"
+        },
+        {
+            "name": "Chrome index.html",
+            "type": "chrome",
+            "request": "launch",
+            "file": "${workspaceRoot}/www/index.html"
+        },
+        {
+            "type": "chrome",
+            "request": "attach",
+            "name": "Attach to Chrome",
+            "port": 9222,
+            "webRoot": "${workspaceRoot}"
+        }
+
+    ]
+}

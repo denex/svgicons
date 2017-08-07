@@ -39,7 +39,7 @@ def generate_png_from_svg(svg_filename, png_filename):
     try:
         svg2png(svg_filename, png_filename)
     except Exception as e:
-        print(e, file=sys.stderr)
+        logging.exception(e)
 
 
 def compute_difference(origin_png_filename, generated_png_filename):
@@ -75,18 +75,18 @@ def render_file(template_name, template_kwargs, dst_filename):
         out_f.write(rendered_text)
 
 
-def render_templates(png_filename):
+def render_templates(png_filename, open_svg):
     assert os.path.exists(png_filename)
     filename_wo_extension = os.path.splitext(png_filename)[0]
     base_name = os.path.basename(filename_wo_extension)
     svg_filename = os.path.join(SVG_DIR, base_name + '.svg')
     grid_filename = os.path.join(WWW_DIR, 'grid.svg')
     paths = {
-        'png_filename': os.path.relpath(os.path.join(TMP_DIR, 'origin.png'), WWW_DIR),
+        'origin_png_filename': os.path.relpath(os.path.join(TMP_DIR, 'origin.png'), WWW_DIR),
         'svg_filename': os.path.relpath(svg_filename, WWW_DIR),
         'grid_filename': os.path.relpath(grid_filename, WWW_DIR),
         'diff_filename': os.path.relpath(DIFF_FILENAME, WWW_DIR),
-        'generated_filename': os.path.relpath(GENERATED_FILENAME, WWW_DIR),
+        'generated_png_filename': os.path.relpath(GENERATED_FILENAME, WWW_DIR),
     }
     icon = {}
     with Image.open(png_filename) as png_image:
@@ -95,9 +95,10 @@ def render_templates(png_filename):
     render_file('grid.template', {'icon': icon}, grid_filename)
     if not os.path.exists(svg_filename):
         render_file('svg.template', {'icon': icon}, svg_filename)
-    args = ['open'] if sys.platform == 'darwin' else ['cmd.exe', '/c', 'start']
-    args.append(svg_filename)
-    subprocess.call(args)
+    if open_svg:
+        args = ['open'] if sys.platform == 'darwin' else ['cmd.exe', '/c', 'start']
+        args.append(svg_filename)
+        subprocess.call(args)
     render_file('html.template', {'icon': icon,
                                   'server': WS_SERVER_CONFIG,
                                   'paths': paths},
@@ -125,7 +126,7 @@ class SVGModificationHandler(FileSystemEventHandler):
 
 
 @begin.start
-def main(origin_png_filename):
+def main(origin_png_filename, open_html=False, open_svg=False):
     global WS_SERVER
     logging.basicConfig(level=logging.INFO,
                         format='%(asctime)s - %(message)s',
@@ -134,20 +135,21 @@ def main(origin_png_filename):
     dst_png_filename = os.path.join(TMP_DIR, 'origin.png')
     shutil.copyfile(origin_png_filename, dst_png_filename)
 
-    svg_filename = render_templates(origin_png_filename)
+    svg_filename = render_templates(origin_png_filename, open_svg)
     on_observable_svg_changed(svg_filename, dst_png_filename, reload_view=False)
 
-    # Set change observer
+    print("Set change observer")
     event_handler = SVGModificationHandler(svg_filename, dst_png_filename)
     observer = Observer()
     observer.schedule(event_handler, WWW_DIR, recursive=True)
     observer.start()
 
-    # Start WebSocket server
+    print("Start WebSocket server")
     WS_SERVER = WebsocketServer(**WS_SERVER_CONFIG)
-    args = ['open'] if sys.platform == 'darwin' else ['cmd.exe', '/c', 'start']
-    args.append(HTML_URL)
-    subprocess.check_call(args)
+    if open_html:
+        args = ['open'] if sys.platform == 'darwin' else ['cmd.exe', '/c', 'start']
+        args.append(HTML_URL)
+        subprocess.check_call(args)
     WS_SERVER.run_forever()
     #
     observer.stop()
