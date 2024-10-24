@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "svgicons"
+version = "0.1.0"
+description = "Tool to redraw SVG icon from PNG"
+authors = ["Denis Averin"]
+license = "GPL"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+begins = "^0.9"
+CairoSVG = "^2.7.1"
+Jinja2 = "^3.1.4"
+pillow = "^11.0.0"
+watchdog = "^5.0.3"
+websocket-server = "^0.6.4"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

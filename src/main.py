@@ -16,10 +16,13 @@ import begin
 
 from svg2png import svg2png
 
-WWW_DIR = os.path.abspath(os.path.join('..', 'www'))
+SCRIPT_DIR = os.path.dirname(__file__)
+WORK_DIR = os.path.join(SCRIPT_DIR, '..')
+
+WWW_DIR = os.path.abspath(os.path.join(WORK_DIR, 'www'))
 SVG_DIR = os.path.join(WWW_DIR, 'svg')
 TMP_DIR = os.path.join(WWW_DIR, 'tmp')
-TEMPLATE_DIR = os.path.join('..', 'templates')
+TEMPLATE_DIR = os.path.join(WORK_DIR, 'templates')
 HTML_FILE = os.path.join(WWW_DIR, 'index.html')
 HTML_URL = "file://" + os.path.realpath(HTML_FILE).replace(os.path.sep, '/')
 
@@ -40,19 +43,24 @@ def generate_png_from_svg(svg_filename, png_filename):
         svg2png(svg_filename, png_filename)
     except Exception as e:
         logging.exception(e)
+        raise
 
 
 def compute_difference(origin_png_filename, generated_png_filename):
     assert os.path.isfile(origin_png_filename)
     assert os.path.isfile(generated_png_filename)
+
     with Image.open(origin_png_filename) as origin, Image.open(generated_png_filename) as generated:
+        logging.info(f"{origin.mode=} {generated.mode=}")
+        # Convert to one mode (color space)
+        origin = origin.convert(generated.mode)
         with ImageChops.difference(origin, generated) as diff:
             diff = diff.convert('RGB')
             new = ImageOps.invert(diff)
             new.save(DIFF_FILENAME, format='PNG')
 
 
-WS_SERVER = None
+WS_SERVER: WebsocketServer = None
 
 
 def on_some_svg_file_changed(svg_filename):
@@ -65,6 +73,7 @@ def on_observable_svg_changed(svg_filename, png_filename, reload_view=True):
     generate_png_from_svg(svg_filename, png_filename=GENERATED_FILENAME)
     compute_difference(origin_png_filename=png_filename, generated_png_filename=GENERATED_FILENAME)
     if reload_view:
+        logging.info("Reloading page...")
         WS_SERVER.send_message_to_all("Refresh")
 
 
@@ -128,10 +137,11 @@ class SVGModificationHandler(FileSystemEventHandler):
 @begin.start
 def main(origin_png_filename, open_html=False, open_svg=False):
     global WS_SERVER
-    logging.basicConfig(level=logging.INFO,
+    logging.basicConfig(force=True, level=logging.INFO,
                         format='%(asctime)s - %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
     assert os.path.isfile(origin_png_filename), origin_png_filename
+    os.makedirs(TMP_DIR, exist_ok=True)
     dst_png_filename = os.path.join(TMP_DIR, 'origin.png')
     shutil.copyfile(origin_png_filename, dst_png_filename)
 
