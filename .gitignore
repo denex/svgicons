@@ -1,4 +1,7 @@
 .vscode/settings.json
-www/tmp/
-www/grid.svg
-www/index.html
+/node_modules/
+/png/
+/py3/
+/www/grid.svg
+/www/index.html
+/www/tmp/
